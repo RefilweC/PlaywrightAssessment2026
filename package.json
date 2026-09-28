@@ -1,0 +1,24 @@
+{
+  "name": "playwrightassessment2026",
+  "version": "1.0.0",
+  "description": "Ndosi's final assessment-Upload a profile picture",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RefilweC/PlaywrightAssessment2026.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/RefilweC/PlaywrightAssessment2026/issues"
+  },
+  "homepage": "https://github.com/RefilweC/PlaywrightAssessment2026#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.3"
+  }
+}
