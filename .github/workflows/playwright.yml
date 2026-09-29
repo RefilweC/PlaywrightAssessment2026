@@ -1,27 +1,81 @@
-name: Playwright Tests
+name: Playwright CI and Allure Pages deployment
 on:
   push:
-    branches: [ main, master ]
+    branches: ['**']
   pull_request:
-    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: lts/*
-    - name: Install dependencies
-      run: npm ci
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
-    - name: Run Playwright tests
-      run: npx playwright test
-    - uses: actions/upload-artifact@v4
-      if: ${{ !cancelled() }}
-      with:
-        name: playwright-report
-        path: playwright-report/
-        retention-days: 30
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run Playwright tests
+        run: npx playwright test
+      - name: Generate Allure report
+        if: always()
+        run: |
+          if [ -d allure-results ] && [ "$(find allure-results -type f | wc -l)" -gt 0 ]; then
+            npx allure generate allure-results --clean -o allure-report
+          fi
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-and-allure-reports
+          path: |
+            playwright-report/
+            allure-results/
+            allure-report/
+          if-no-files-found: ignore
+          retention-days: 30
+
+  deploy-allure-report:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download test artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-and-allure-reports
+          path: report-artifacts
+      - name: Prepare Pages content
+        run: |
+          mkdir -p public
+          if [ -d report-artifacts/allure-report ]; then
+            cp -a report-artifacts/allure-report/. public/
+          elif [ -d report-artifacts/playwright-report ]; then
+            cp -a report-artifacts/playwright-report/. public/
+          else
+            echo "No generated report found" >&2
+            exit 1
+          fi
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - name: Deploy Allure report to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
