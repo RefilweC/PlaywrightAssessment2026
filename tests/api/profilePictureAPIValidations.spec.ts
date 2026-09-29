@@ -1,49 +1,33 @@
 import path from 'node:path';
 import { getLoginCredentials } from '../../src/data/application-input';
-import { test } from '../../src/fixtures/api.fixture';
+import { expect, test } from '../../src/fixtures/api.fixture';
 import { assertResponseCode } from '../../src/utils/ApiHelper';
 
-const profilePicturePath = path.resolve(process.cwd(), 'data/profilepicture.png');
+const profilePicturePath = path.resolve(__dirname, '../../data/profilepicture.png');
 
 test.describe('Profile API endpoint status validations', () => {
-    
-  test('login returns HTTP 200', async ({ authClient }) => {
-    const response = await authClient.login(getLoginCredentials());
+  let accessToken: string;
 
-    await assertResponseCode(response, 'login');
-  });
-
-  test('get user profile returns HTTP 200', async ({ authClient, profileClient }) => {
+  test.beforeEach(async ({ authClient }) => {
     const loginResponse = await authClient.login(getLoginCredentials());
     await assertResponseCode(loginResponse, 'login');
+    accessToken = await authClient.getAccessToken(loginResponse);
+  });
 
-    const accessToken = await authClient.getAccessToken(loginResponse);
+  test('login returns HTTP 200 and a usable access token', async () => {
+    expect(accessToken.trim()).not.toBe('');
+  });
+
+  test('get user profile returns HTTP 200', async ({ profileClient }) => {
     const profileResponse = await profileClient.getProfile(accessToken);
-
     await assertResponseCode(profileResponse, 'get user profile');
   });
 
-  test('update profile picture returns HTTP 200', async ({ authClient, profileClient }) => {
-    const loginResponse = await authClient.login(getLoginCredentials());
-    await assertResponseCode(loginResponse, 'login');
-    const accessToken = await authClient.getAccessToken(loginResponse);
-
-    const profileResponse = await profileClient.getProfile(accessToken);
-    await assertResponseCode(profileResponse, 'get user profile');  
-
+  test('update profile picture returns HTTP 200', async ({ profileClient }) => {
     const uploadResponse = await profileClient.updateProfilePicture(accessToken, {
       filePath: profilePicturePath,
     });
-    await assertResponseCode(uploadResponse, 'update profile picture');
-    
-/*
-    const imagePath = path.resolve(process.cwd(), 'data/profilepicture.png');
-    const uploadResponse = await profileClient.updateProfilePicture(accessToken, {
-          filePath: imagePath,
-        });
-        await assertResponseCode(uploadResponse, 'update profile picture');
-*/
-   // await assertResponseCode(uploadResponse, 'update profile picture');
 
+    await assertResponseCode(uploadResponse, 'update profile picture');
   });
 });
