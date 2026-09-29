@@ -1,5 +1,8 @@
 name: Playwright CI and Allure Pages deployment
 on:
+  schedule:
+    # Run every night at 00:00 South Africa Standard Time (UTC+2).
+    - cron: '0 22 * * *'
   push:
     branches: ['**']
   pull_request:
