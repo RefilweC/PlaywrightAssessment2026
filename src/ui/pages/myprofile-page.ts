@@ -17,8 +17,10 @@ export class MyProfilePage extends BasePage {
     await this.editProfileButton.click();
   }
 
-  async uploadProfilePicture(filePath: string): Promise<void> {
-    await this.uploadProfilePictureInput.setInputFiles(filePath);
+  async uploadProfilePicture(
+    file: string | { name: string; mimeType: string; buffer: Buffer },
+  ): Promise<void> {
+    await this.uploadProfilePictureInput.setInputFiles(file);
     await this.saveChangesButton.click();
     await this.page.evaluate(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
     
