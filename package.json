@@ -6,7 +6,12 @@
   "directories": {
     "test": "tests"
   },
-  "scripts": {},
+  "scripts": {
+    "pretest": "node scripts/clear-playwright-report.js",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "show-report": "playwright show-report --port 9324"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/RefilweC/PlaywrightAssessment2026.git"
@@ -19,6 +24,10 @@
   "homepage": "https://github.com/RefilweC/PlaywrightAssessment2026#readme",
   "devDependencies": {
     "@playwright/test": "^1.63.0",
-    "@types/node": "^26.6.3"
+    "@types/node": "^26.6.3",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
   }
 }
