@@ -14,14 +14,14 @@ const ci = (globalThis as { process?: { env?: Record<string, string | undefined>
  */
 export default defineConfig({
   testDir: './tests',
-  /* Run tests in files in parallel */
-  fullyParallel: true,
+  /* The shared test account supports one active session; avoid parallel logins invalidating tokens. */
+  fullyParallel: false,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!ci,
   /* Retry on CI only */
   retries: ci ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: ci ? 1 : undefined,
+  /* Keep tests serialized locally and in CI because UI/API suites share the same account. */
+  workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
